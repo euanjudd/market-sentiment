@@ -6,7 +6,6 @@
 @github: https://github.com/euanjudd/market-sentiment
 """
 import pandas as pd                     # for working with datasets
-from textblob import TextBlob           # for analysing sentiment of text data
 import matplotlib.pyplot as plt         # for plotting
 import datetime as dt                   # for setting dates string to datetime.datetime object
 import random                           # for generating random numbers
@@ -24,82 +23,154 @@ class ProcessTweets():
     Process raw tweets by removes URLs, retweets, usernames, hashtags, emojis, repeated characters, punctuations, and
     stopwords ('a', 'an','the', etc.)
     """
-    def replace_url(self, tweet):
+    def __init__(self, tweet):
+        """A new class for each tweet"""
+        self.tweet = tweet.lower()
+        self.words_to_remove = set(stopwords.words('english') + list(punctuation) + ['AT_USER','URL'])
+
+    def __str__(self):
+        return self.tweet
+
+    def replace_url(self):
         """Replace URLs in a tweet with "URL"."""
-        return re.sub('((www\.[^\s]+)|(https?://[^\s]+))', 'URL', tweet)
+        self.tweet = re.sub('((www\.[^\s]+)|(https?://[^\s]+))', 'URL', self.tweet)
+        # MyCharacter(chr(self.value + other))
+        return self
 
-    def remove_retweet(self, tweet):
+    def remove_retweet(self):
         """Removes retweets from tweet."""
-        return re.sub('\s*rt\s', '', tweet)
+        self.tweet = re.sub('\s*rt\s', '', self.tweet)
+        return self
 
-    def replace_at_user(self, tweet):
+    def replace_at_user(self):
         """Replace @user in tweet with AT_USER."""
-        return re.sub('@[^\s]+', 'AT_USER', tweet)
+        self.tweet = re.sub('@[^\s]+', 'AT_USER', self.tweet)
+        return self
 
-    def replace_hashtag(self, tweet):
+    def replace_hashtag(self):
         """Replace #'s in tweet with \1."""
-        return re.sub(r'#([^\s]+)', r'\1', tweet)
+        self.tweet = re.sub(r'#([^\s]+)', r'\1', self.tweet)
+        return self
 
-    def only_keep_ascii_characters(self, tweet):
+    def only_keep_ascii_characters(self):
         """Encode a string to bytes, ignore what can't be converted, decode the bytes to a string and return."""
-        return tweet.encode('ascii', 'ignore').decode('ascii')
+        self.tweet = self.tweet.encode('ascii', 'ignore').decode('ascii')
+        return self
 
-    def char_to_remove(self):
-        """Form a set of characters we want to remove from a tweet."""
-        return set(stopwords.words('english') + list(punctuation) + ['AT_USER','URL'])
-
-    def remove_unwanted_words(self, tweet):
+    def remove_unwanted_words(self):
         """Keep words if they are not in the set of words to remove."""
-        tweet = word_tokenize(tweet)
-        words_to_remove = self.char_to_remove()
-        return ' '.join([word for word in tweet if word not in words_to_remove])
+        self.tweet = word_tokenize(self.tweet)
+        self.tweet = ' '.join([word for word in self.tweet if word not in self.words_to_remove])
+        return self
 
-# # # # SENTIMENT ANALYSIS # # # #
-class SentimentAnalysis():
+# # # # TWEET STATISTICS # # # #
+class TweetStatistics():
     """
-    Sentiment analysis of string using keywords
+    Analyse tweets for keyfords.
+    """
+    def keyword_counter(self, tweet, keyword):
+        """Counts the number of times a keyword appears in a tweet."""
+        return tweet.count(keyword)
+
+# # # # FORWARD STEPWISE SELECTION # # # #
+# class FordwardStepwiseSelection():
+#     """
+#     Starts from zero predictors and adds predictors one-at-a-time and the best predictor is selected, then a second predictor is
+#     added one-at-a-time and the best pair is selected, and so on.
+#     """
+#     def __init__(self):
+#         """Store current predictor."""
+#         self.idx = 0
+#
+#     def iterate_predictors(self, selection, predictors):
+#         """Returns the next predictor one-at-a-time for analysis."""
+#         for keyword in range(self.idx, len(predictors)):
+#             if keyword not in selection:
+#                 self.idx += 1
+#                 return keyword
+
+# # # # FORWARD STEPWISE SELECTION # # # #
+class AltFordwardStepwiseSelection():
+    """
+    Starts from zero predictors and adds predictors one-at-a-time and the best predictor is selected, then a second predictor is
+    added one-at-a-time and the best pair is selected, and so on.
+    """
+    def __init__(self, predictors):
+        """Predictors are predictors that haven't been tried this round."""
+        self.subset = predictors.copy()
+
+    def iterate_predictors(self, selection):
+        """Returns the next predictor to be tested."""
+        self.subset = list(set(self.subset).difference(selection)) # Subset will be rearranged every time this is called
+        idx = self.subset[0] # Make new selection
+        self.subset.remove(idx) # Remove new selection
+        return idx
+
+    def reset_predictors(self, predictors):
+        """Reset leftover predictors to the original set."""
+        if len(self.subset) == 0:
+            self.subset = predictors.copy()
+            return True
+        return False
+
+# # # # STATISTICAL LEARNING # # # #
+class StatisticalLearning():
+    """
+    Forward stepwise selection of keywords with multiple statistical learning methods to find a relationship.
     """
     def __init__(self):
-        """Keywords of interest."""
-        self.keywords = ["happy", "sad", "shitstorm", "beating", "bull", "bear"]
+        pass
 
-    def sentiment(self, tweet):
-        """Determines if the tweet is bullish or bearish"""
+    def granger_causality(self):
+        """Find the correlation and lag between two time series."""
+        pass
+
+    def recurrent_neural_network(self):
+        """Find an approximation of the function that relates two time series."""
         pass
 
 if __name__ == "__main__":
-    # PRICE DATA #
+    """DATA"""
     gld_data_frame = pd.read_csv('GLD.csv') #'Data','Open','High','Low','Close','Adj Close','Volume'
-    # CLEAN TWEET DATA #
+    gld_dates = [dt.datetime.strptime(i, '%Y-%m-%d') for i in gld_data_frame['Date']]
+
     sentiment_data_frame = pd.read_csv('sentiment.csv') #'TweetDate','UserLocation','Tweets','Username','FavouriteCount',RTCount'
     sentiment_data_frame.sort_values(by=['TweetDate'], inplace=True, ascending=True)
-    process_tweets = ProcessTweets()
-    sentiment_data_frame['Tweets'] = sentiment_data_frame['Tweets'].apply(lambda x: x.lower())
-    sentiment_data_frame['CleanedTweets'] = sentiment_data_frame['Tweets'].apply(lambda x: process_tweets.replace_url(x))
-    sentiment_data_frame['CleanedTweets'] = sentiment_data_frame['CleanedTweets'].apply(lambda x: process_tweets.remove_retweet(x))
-    sentiment_data_frame['CleanedTweets'] = sentiment_data_frame['CleanedTweets'].apply(lambda x: process_tweets.replace_at_user(x))
-    sentiment_data_frame['CleanedTweets'] = sentiment_data_frame['CleanedTweets'].apply(lambda x: process_tweets.replace_hashtag(x))
-    sentiment_data_frame['CleanedTweets'] = sentiment_data_frame['CleanedTweets'].apply(lambda x: process_tweets.only_keep_ascii_characters(x))
-    sentiment_data_frame['CleanedTweets'] = sentiment_data_frame['CleanedTweets'].apply(lambda x: process_tweets.remove_retweet(x))
-    sentiment_data_frame['CleanedTweets'] = sentiment_data_frame['CleanedTweets'].apply(lambda x: process_tweets.remove_unwanted_words(x))
-
-    # ANALYSE CLEANED TWEETS #
-    sentiment_analysis = SentimentAnalysis()
-    # sentiment_data_frame['TweetPolarity'] = sentiment_data_frame['CleanedTweet'].apply(lambda x: TextBlob(x).sentiment.polarity)  # Sentiment polarity [-1,1]
-    sentiment_data_frame['TweetSentiment'] = sentiment_data_frame['CleanedTweets'].apply(lambda x: sentiment_analysis.sentiment(x))  # Sentiment [-1,1]
-
-    gld_dates = [dt.datetime.strptime(i, '%Y-%m-%d') for i in gld_data_frame['Date']]
     sentiment_dates = [dt.datetime.strptime(i, '%Y-%m-%d %H:%M:%S') for i in sentiment_data_frame['TweetDate']]
-    fig, ax1 = plt.subplots()
-    color = 'tab:red'
-    ax1.set_xlabel('Date')
-    ax1.set_ylabel('Daily Close Price ($)', color=color)
-    ax1.plot(gld_dates, gld_data_frame['Close'], color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    color = 'tab:blue'
-    ax2.set_ylabel('Retweets', color=color)  # we already handled the x-label with ax1
-    ax2.plot(sentiment_dates, sentiment_data_frame['RTCount'], color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.show()
+
+    """CLEAN TWEET DATA"""
+    sentiment_data_frame['CleanedTweets'] = sentiment_data_frame['Tweets'].apply(lambda x:
+        str(ProcessTweets(x).replace_url().remove_retweet().replace_at_user().replace_hashtag().only_keep_ascii_characters().remove_unwanted_words())
+    )
+
+    """PROCESS KEYWORD INFORMATION IN TWEETS"""
+    keywords = ['Happy', 'Sad', 'Shitstorm', 'Bear', 'Bull']
+    tweet_stats = TweetStatistics()
+    for keyword in keywords: sentiment_data_frame[keyword] = sentiment_data_frame['CleanedTweets'].apply(lambda x: tweet_stats.keyword_counter(x, keyword.lower()))
+
+    """FORWARD STEPWISE SELECTION"""
+    fordward_stepwise_selection = AltFordwardStepwiseSelection(keywords)
+    selection = []
+    while len(selection) < len(keywords):
+        test = fordward_stepwise_selection.iterate_predictors(selection)
+        # Placeholder: Statistical learning method. Input:selection+test; Output:MSE.
+        # Placeholder: Append [selection+test, MSE ].
+        if fordward_stepwise_selection.reset_predictors(keywords):
+            # Placeholder: Append [test, MSE] of best performing test to selection.
+            selection.append(test)
+
+    """PLOT CLOSE PRICE AND RETWEETS ON THE SAME GRAPH"""
+    # fig, ax1 = plt.subplots()
+    # color = 'tab:red'
+    # ax1.set_xlabel('Date')
+    # ax1.set_ylabel('Daily Close Price ($)', color=color)
+    # ax1.plot(gld_dates, gld_data_frame['Close'], color=color)
+    # ax1.tick_params(axis='y', labelcolor=color)
+    # ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    # color = 'tab:blue'
+    # ax2.set_ylabel('Happy', color=color)  # we already handled the x-label with ax1
+    # ax2.plot(sentiment_dates, sentiment_data_frame[keywords], color=color)
+    # ax2.tick_params(axis='y', labelcolor=color)
+    # fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    # plt.legend(keywords)
+    # plt.show()
