@@ -73,24 +73,7 @@ class TweetStatistics():
         return tweet.count(keyword)
 
 # # # # FORWARD STEPWISE SELECTION # # # #
-# class FordwardStepwiseSelection():
-#     """
-#     Starts from zero predictors and adds predictors one-at-a-time and the best predictor is selected, then a second predictor is
-#     added one-at-a-time and the best pair is selected, and so on.
-#     """
-#     def __init__(self):
-#         """Store current predictor."""
-#         self.idx = 0
-#
-#     def iterate_predictors(self, selection, predictors):
-#         """Returns the next predictor one-at-a-time for analysis."""
-#         for keyword in range(self.idx, len(predictors)):
-#             if keyword not in selection:
-#                 self.idx += 1
-#                 return keyword
-
-# # # # FORWARD STEPWISE SELECTION # # # #
-class AltFordwardStepwiseSelection():
+class FordwardStepwiseSelection():
     """
     Starts from zero predictors and adds predictors one-at-a-time and the best predictor is selected, then a second predictor is
     added one-at-a-time and the best pair is selected, and so on.
@@ -149,7 +132,7 @@ if __name__ == "__main__":
     for keyword in keywords: sentiment_data_frame[keyword] = sentiment_data_frame['CleanedTweets'].apply(lambda x: tweet_stats.keyword_counter(x, keyword.lower()))
 
     """FORWARD STEPWISE SELECTION"""
-    fordward_stepwise_selection = AltFordwardStepwiseSelection(keywords)
+    fordward_stepwise_selection = FordwardStepwiseSelection(keywords)
     selection = []
     while len(selection) < len(keywords):
         test = fordward_stepwise_selection.iterate_predictors(selection)
@@ -158,6 +141,7 @@ if __name__ == "__main__":
         if fordward_stepwise_selection.reset_predictors(keywords):
             # Placeholder: Append [test, MSE] of best performing test to selection.
             selection.append(test)
+    print(selection)
 
     """PLOT CLOSE PRICE AND RETWEETS ON THE SAME GRAPH"""
     # fig, ax1 = plt.subplots()
