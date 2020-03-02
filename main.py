@@ -75,22 +75,22 @@ class TweetStatistics():
 # # # # FORWARD STEPWISE SELECTION # # # #
 class FordwardStepwiseSelection():
     """
-    Starts from zero predictors and adds predictors one-at-a-time and the best predictor is selected, then a second predictor is
-    added one-at-a-time and the best pair is selected, and so on.
+    Starts with zero predictors. A new predictor is added one-at-a-time. The best predictor is selected. A second predictor is
+    then added one-at-a-time. The best pair is selected. etc.
     """
     def __init__(self, predictors):
-        """Predictors are predictors that haven't been tried this round."""
+        """A subset of predictors that haven't been tested this round."""
         self.subset = predictors.copy()
 
     def iterate_predictors(self, selection):
-        """Returns the next predictor to be tested."""
+        """Returns the next predictor for testing."""
         self.subset = list(set(self.subset).difference(selection)) # Subset will be rearranged every time this is called
         idx = self.subset[0] # Make new selection
         self.subset.remove(idx) # Remove new selection
         return idx
 
     def reset_predictors(self, predictors):
-        """Reset leftover predictors to the original set."""
+        """Reset subset to the original set so the next round can start."""
         if len(self.subset) == 0:
             self.subset = predictors.copy()
             return True
@@ -99,7 +99,7 @@ class FordwardStepwiseSelection():
 # # # # STATISTICAL LEARNING # # # #
 class StatisticalLearning():
     """
-    Forward stepwise selection of keywords with multiple statistical learning methods to find a relationship.
+    Multiple statistical learning methods to find a relationship between multiple time series.
     """
     def __init__(self):
         pass
