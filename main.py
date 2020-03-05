@@ -7,12 +7,12 @@
 """
 
 import pandas as pd                     # for working with datasets
-import matplotlib.pyplot as plt         # for plotting
 import datetime as dt                   # for setting dates string to datetime.datetime object
 from process_tweets import ProcessTweets
 from tweet_statistics import *
 from forward_stepwise_selection import *
 from statistical_learning import *
+from multi_line_plot import *
 
 if __name__ == "__main__":
     """DATA"""
@@ -46,17 +46,5 @@ if __name__ == "__main__":
     print(selection)
 
     """PLOT CLOSE PRICE AND RETWEETS ON THE SAME GRAPH"""
-    # fig, ax1 = plt.subplots()
-    # color = 'tab:red'
-    # ax1.set_xlabel('Date')
-    # ax1.set_ylabel('Daily Close Price ($)', color=color)
-    # ax1.plot(gld_dates, gld_data_frame['Close'], color=color)
-    # ax1.tick_params(axis='y', labelcolor=color)
-    # ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    # color = 'tab:blue'
-    # ax2.set_ylabel('Happy', color=color)  # we already handled the x-label with ax1
-    # ax2.plot(sentiment_dates, sentiment_data_frame[keywords], color=color)
-    # ax2.tick_params(axis='y', labelcolor=color)
-    # fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    # plt.legend(keywords)
-    # plt.show()
+    MultiLinePlot().plot_dataframes(x1 = gld_dates, y1 = gld_data_frame['Close'], y1_label = 'Daily Close Price ($)',
+                    x2 = sentiment_dates, y2 = sentiment_data_frame[keywords], y2_label = 'Happy')
